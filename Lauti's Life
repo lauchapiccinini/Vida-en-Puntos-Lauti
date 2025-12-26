@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Vida en Puntos – Lauty</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f4f4;
+}
+header {
+  background: #222;
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+}
+section {
+  padding: 15px;
+}
+.card {
+  background: #fff;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 8px;
+}
+button {
+  padding: 6px 10px;
+  margin: 4px;
+  border: none;
+  border-radius: 5px;
+}
+.good { background: #4CAF50; color: #fff; }
+.bad { background: #f44336; color: #fff; }
+.wallet { background: #FFD700; }
+</style>
+</head>
+
+<body>
+<header>
+  <h1>Vida en Puntos – Lauty</h1>
+  <p>Tu vida, gamificada</p>
+</header>
+
+<section class="card">
+  <h2>Dashboard</h2>
+  <p>Puntos totales: <b id="total">0</b></p>
+  <p>Puntos positivos: <b id="pos">0</b></p>
+  <p>Puntos negativos: <b id="neg">0</b></p>
+  <p>LautyCoins: 🪙 <b id="coins">0</b></p>
+</section>
+
+<section class="card">
+  <h2>Hábitos saludables</h2>
+  <div id="goodHabits"></div>
+</section>
+
+<section class="card">
+  <h2>Hábitos no saludables</h2>
+  <div id="badHabits"></div>
+</section>
+
+<section class="card">
+  <h2>Kiosco (comprar hábitos malos)</h2>
+  <p>Comprar cuesta LautyCoins</p>
+  <button class="wallet" onclick="buyBad()">Comprar hábito no saludable (-5 🪙)</button>
+</section>
+
+<script>
+let data = JSON.parse(localStorage.getItem("vidaPuntos")) || {
+  total: 0,
+  pos: 0,
+  neg: 0,
+  coins: 0,
+  history: []
+};
+
+const goodHabits = [
+  ["Caminar 30 min",3],["Entrenar fuerza",5],["Comer verduras",2],
+  ["Tomar 2L agua",3],["Dormir 7-8h",5],["Estudiar tesis",4],
+  ["Meditar",2],["Ordenar la casa",2],["Leer",2],["Planificar día",3],
+  ["Bici 30 min",4],["Cocinar sano",3],["Estirar",2],
+  ["Respirar consciente",1],["Evitar azúcar",3],
+  ["Trabajo enfocado",4],["Postura correcta",2],
+  ["Tomar sol",2],["Journaling",2],["Social sano",3],
+  ["Preparar comidas",3],["Dormir siesta corta",2],
+  ["Escuchar música calma",1],["No redes mañana",3],
+  ["Entrenar rugby",5],["Higiene sueño",3],
+  ["Gratitud",1],["Constancia",4],
+  ["Caminar post cena",2],["Organizar finanzas",4],
+  ["Hidratarse mañana",2],["Desayuno saludable",3],
+  ["Evitar alcohol",4],["Mindfulness",2],
+  ["Terapia",4],["Tiempo naturaleza",3],
+  ["Respirar antes comer",1],["Comer lento",2],
+  ["Priorizar tareas",3],["No multitasking",2],
+  ["Pausa activa",2],["Estudiar extra",3],
+  ["Ayudar a alguien",2],["Orden digital",2],
+  ["Dormir temprano",4],["Constancia dieta",4],
+  ["Entrenar movilidad",3],["Respeto rutinas",3],
+  ["Cuidar cuerpo",4]
+];
+
+const badHabits = [
+  ["Ultraprocesados",-4],["No entrenar",-5],["Dormir <5h",-7],
+  ["Exceso redes",-3],["Alcohol",-6],["Procrastinar",-5],
+  ["Saltear comidas",-4],["Sedentarismo",-6],
+  ["Comer ansiedad",-5],["Pantallas noche",-4],
+  ["Desorden",-3],["No agua",-4],
+  ["Comer rápido",-3],["Azúcar excesiva",-5],
+  ["Compararse",-4],["Dormir tarde",-6],
+  ["No planificar",-4],["Aislarse",-5],
+  ["Fast food",-6],["No moverse",-6],
+  ["Auto sabotaje",-7],["No estudiar",-5],
+  ["Deshidratarse",-4],["No estirar",-3],
+  ["Pensamiento negativo",-4],["No cocinar",-4],
+  ["Gastar impulsivo",-5],["Alcohol social",-5],
+  ["Mala postura",-3],["No descansar",-6],
+  ["Comer de noche",-4],["No caminar",-4],
+  ["Pantalla excesiva",-5],["Culpa comida",-4],
+  ["Desorden sueño",-6],["Falta foco",-4],
+  ["No registrar hábitos",-3],["Desmotivarse",-5],
+  ["No respirar",-3],["Comer apurado",-3],
+  ["No entrenar rehab",-6],["Evitar responsabilidades",-6],
+  ["No salir al sol",-3],["Ignorar cuerpo",-6],
+  ["No escuchar hambre",-4],["Abandonar rutina",-7],
+  ["Caos horarios",-5],["No cuidarse",-7],
+  ["No dormir",-8]
+];
+
+function render() {
+  document.getElementById("total").innerText = data.total;
+  document.getElementById("pos").innerText = data.pos;
+  document.getElementById("neg").innerText = data.neg;
+  document.getElementById("coins").innerText = data.coins;
+}
+
+function add(points) {
+  data.total += points;
+  if (points > 0) {
+    data.pos += points;
+    data.coins += Math.floor(points/5);
+  } else {
+    data.neg += points;
+  }
+  save();
+}
+
+function save() {
+  localStorage.setItem("vidaPuntos", JSON.stringify(data));
+  render();
+}
+
+goodHabits.forEach(h =>
+  document.getElementById("goodHabits").innerHTML +=
+  `<button class="good" onclick="add(${h[1]})">${h[0]} (+${h[1]})</button>`
+);
+
+badHabits.forEach(h =>
+  document.getElementById("badHabits").innerHTML +=
+  `<button class="bad" onclick="add(${h[1]})">${h[0]} (${h[1]})</button>`
+);
+
+function buyBad() {
+  if (data.coins >= 5) {
+    data.coins -= 5;
+    add(-5);
+  } else {
+    alert("No tenés LautyCoins suficientes");
+  }
+}
+
+render();
+</script>
+</body>
+</html>
